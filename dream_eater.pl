@@ -13,10 +13,11 @@ use Time::Piece;
 use Data::Dumper;
 
 # Holds onto my phone number
+use lib "/home/jglukasik/einsteins_dreams/credentials";
 use credentials;
 
 # Open the Einstein's Dreams text file
-open(my $fh, "<", 'ed.txt') or die "can't open file: $!";
+open(my $fh, "<", "/home/jglukasik/einsteins_dreams/ed.txt") or die "can't open file: $!";
 
 my %book;
 my $day = '';
@@ -74,7 +75,7 @@ my $todays_dream;
 # Prepare for sending out a text if there was a dream for today
 my $phone_num = $credentials::phone_num;
 my $message = "New dream at http://ed.jgl.me";
-my $text_cmd = "curl -X POST http://textbelt.com/text -d number=$phone_num -d 'message=$message' ";
+my $text_cmd = "curl -silent -X POST http://textbelt.com/text -d number=$phone_num -d 'message=$message' >/dev/null 2>&1";
 
 if (defined $book{"$today-1905"}){
   system($text_cmd);
@@ -84,8 +85,7 @@ if (defined $book{"$today-1905"}){
 }
 
 # Create an html file with todays dream
-my $template = HTML::Template->new(filename => 'dream_catcher.html');
+my $template = HTML::Template->new(filename => "/home/jglukasik/einsteins_dreams/dream_catcher.html");
 $template->param(DATE => $today);
 $template->param(DREAM => $todays_dream);
 print $template->output;
-
