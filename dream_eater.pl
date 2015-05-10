@@ -2,15 +2,16 @@
 #
 # Process text in Einstein's Dreams
 #
-# Call ./dream_eater mm-dd to print to STDOUT an html page, using dream_catcher
-# as a template, containing the dream for the given day
+# Call ./dream_eater to populate the sqlite database dream_catcher.db
 
 use warnings;
 use strict;
 
+use Data::Dumper;
+use DateTime;
+use DBI;
 use HTML::Template;
 use Time::Piece;
-use Data::Dumper;
 
 # Holds onto my phone number
 use lib "/home/jglukasik/einsteins_dreams/credentials";
@@ -56,7 +57,7 @@ while (<$fh>) {
       $day = $_; 
     } else {
       my $d = Time::Piece->strptime($_,"%d %B %Y");
-      $day = $d->mdy;
+      $day = $d->date;
     }
 
     $book{$day} = ();
@@ -69,23 +70,13 @@ while (<$fh>) {
   }
 }
 
-my $today = $ARGV[0];  # In format: mm-dd
-my $todays_dream;
+my $db_file = '/home/jglukasik/einsteins_dreams/dream_catcher.db';
+my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file", "", "", { RaiseError => 1})
+  or die ("Coudn't connect to db:" . DBI->errstr);
 
-# Prepare for sending out a text if there was a dream for today
-my $phone_num = $credentials::phone_num;
-my $message = "New dream at http://ed.jgl.me";
-my $text_cmd = "curl -silent -X POST http://textbelt.com/text -d number=$phone_num -d 'message=$message' >/dev/null 2>&1";
+my $sth = $dbh->prepare('INSERT INTO dream (date,content) VALUES (?, ?)');
 
-if (defined $book{"$today-1905"}){
-  system($text_cmd);
-  $todays_dream = $book{"$today-1905"};
-} else {
-  $todays_dream = "No dream today...";
+foreach my $d (keys %book){
+  next if ($d =~ m/INTERLUDE|EPILOGUE|^$/g);
+  $sth->execute($d, $book{$d})
 }
-
-# Create an html file with todays dream
-my $template = HTML::Template->new(filename => "/home/jglukasik/einsteins_dreams/dream_catcher.html");
-$template->param(DATE => $today);
-$template->param(DREAM => $todays_dream);
-print $template->output;
