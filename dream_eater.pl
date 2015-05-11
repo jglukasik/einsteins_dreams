@@ -57,7 +57,7 @@ while (<$fh>) {
       $day = $_; 
     } else {
       my $d = Time::Piece->strptime($_,"%d %B %Y");
-      $day = $d->date;
+      $day = $d->datetime;
     }
 
     $book{$day} = ();

@@ -11,8 +11,13 @@ import Database.Persist
 import Database.Persist.TH
 import Database.Persist.Sqlite
 import Control.Monad.IO.Class (liftIO)
+import System.Locale
 import Data.Time
 import Data.Text (Text)
+import Yesod
+import Data.List as L
+import Control.Monad.Trans.Resource (runResourceT)
+import Control.Monad.Logger (runStderrLoggingT)
 
 share [mkPersist sqlSettings, mkMigrate "migrateAll"] [persistLowerCase|
 Dream
@@ -21,5 +26,46 @@ Dream
   deriving Show
 |]
 
+data App = App ConnectionPool
+
+mkYesod "App" [parseRoutes|
+/ HomeR GET
+|]
+
+instance Yesod App
+
+instance YesodPersist App where
+    type YesodPersistBackend App = SqlBackend
+
+    runDB action = do
+      App pool <- getYesod
+      runSqlPool action pool
+
+getHomeR :: Handler Html
+getHomeR = do
+  dateTime <- liftIO dateIn1905
+  maybeDream <- runDB $ selectFirst [DreamDate ==. dateTime] []
+  defaultLayout $ [whamlet|
+                    $maybe Entity dreamid dream <- maybeDream
+                      <h1>#{showGregorian (utctDay (dreamDate dream))}
+                        <p>#{dreamContent dream}
+                    $nothing
+                      <h1>No dream today...
+                  |]
+
+dateIn1905 :: IO UTCTime
+dateIn1905 = do 
+  c <- getCurrentTime 
+  let (_,m,d) = toGregorian $ utctDay c
+  return $ UTCTime (fromGregorian 1905 m d) 0
+
+openConnectionCount :: Int
+openConnectionCount = 10
+
 main :: IO ()
-main = runSqlite "dream_catcher.db" $ do runMigration migrateAll
+main = runStderrLoggingT $ withSqlitePool "dream_catcher.db"
+  openConnectionCount $ \pool -> liftIO $ do
+    runResourceT $ flip runSqlPool pool $ do
+      runMigration migrateAll
+    warp 3000 $ App pool
+
