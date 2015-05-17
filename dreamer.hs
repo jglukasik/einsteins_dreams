@@ -42,8 +42,8 @@ mkYesod "App" [parseRoutes|
 instance Yesod App where
     defaultLayout contents = do
       PageContent title headTags bodyTags <- widgetToPageContent $ do 
-        contents
         addStylesheet $ StaticR css_bootstrap_min_css
+        contents
       withUrlRenderer $(hamletFile "dream_world.hamlet")
 
 instance YesodPersist App where
@@ -59,7 +59,7 @@ getHomeR = do
   maybeDream <- runDB $ selectFirst [DreamDate ==. dateTime] []
   defaultLayout [whamlet|
                   <body>
-                    <h1>#{showGregorian (utctDay (dateTime))}
+                    <h3>#{showGregorian (utctDay (dateTime))}
                     $maybe Entity dreamid dream <- maybeDream
                         <p>#{dreamContent dream}
                     $nothing
