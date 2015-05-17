@@ -15,6 +15,7 @@ import System.Locale
 import Data.Time
 import Data.Text (Text)
 import Yesod
+import Text.Hamlet
 import Data.List as L
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
@@ -32,7 +33,10 @@ mkYesod "App" [parseRoutes|
 / HomeR GET
 |]
 
-instance Yesod App
+instance Yesod App where
+    defaultLayout contents = do
+      PageContent title headTags bodyTags <- widgetToPageContent contents
+      withUrlRenderer $(hamletFile "dream_world.hamlet")
 
 instance YesodPersist App where
     type YesodPersistBackend App = SqlBackend
@@ -45,13 +49,14 @@ getHomeR :: Handler Html
 getHomeR = do
   dateTime <- liftIO dateIn1905
   maybeDream <- runDB $ selectFirst [DreamDate ==. dateTime] []
-  defaultLayout $ [whamlet|
+  defaultLayout [whamlet|
+                  <body>
+                    <h1>#{showGregorian (utctDay (dateTime))}
                     $maybe Entity dreamid dream <- maybeDream
-                      <h1>#{showGregorian (utctDay (dreamDate dream))}
                         <p>#{dreamContent dream}
                     $nothing
                       <h1>No dream today...
-                  |]
+                |]
 
 dateIn1905 :: IO UTCTime
 dateIn1905 = do 

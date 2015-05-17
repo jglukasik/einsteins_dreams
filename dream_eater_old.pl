@@ -85,7 +85,7 @@ if (defined $book{"$today-1905"}){
 }
 
 # Create an html file with todays dream
-my $template = HTML::Template->new(filename => "/home/jglukasik/einsteins_dreams/dream_world.html");
+my $template = HTML::Template->new(filename => "/home/jglukasik/einsteins_dreams/dream_world_old.html");
 $template->param(DATE => $today);
 $template->param(DREAM => $todays_dream);
 print $template->output;
