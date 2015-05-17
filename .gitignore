@@ -3,4 +3,5 @@ cabal.sandbox.config
 credentials.pm
 *.swp
 *.db
+*.db-*
 client_session_key.aes

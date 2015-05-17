@@ -2,10 +2,12 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="css/skeleton.css">
     <title>#{title}
     ^{headTags}
   <body>
     ^{bodyTags}
+    <div class="jumbotron">
+      <h1>Einstein's dreams
+      <p>This is an example
 
 

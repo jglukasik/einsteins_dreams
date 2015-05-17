@@ -15,8 +15,8 @@ import System.Locale
 import Data.Time
 import Data.Text (Text)
 import Yesod
+import Yesod.Static
 import Text.Hamlet
-import Data.List as L
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
 
@@ -27,22 +27,30 @@ Dream
   deriving Show
 |]
 
-data App = App ConnectionPool
+staticFiles "static"
+
+data App = App 
+    { getStatic :: Static
+    , pool :: ConnectionPool
+    }
 
 mkYesod "App" [parseRoutes|
-/ HomeR GET
+/       HomeR   GET
+/static StaticR Static getStatic
 |]
 
 instance Yesod App where
     defaultLayout contents = do
-      PageContent title headTags bodyTags <- widgetToPageContent contents
+      PageContent title headTags bodyTags <- widgetToPageContent $ do 
+        contents
+        addStylesheet $ StaticR css_bootstrap_min_css
       withUrlRenderer $(hamletFile "dream_world.hamlet")
 
 instance YesodPersist App where
     type YesodPersistBackend App = SqlBackend
 
     runDB action = do
-      App pool <- getYesod
+      App static pool <- getYesod
       runSqlPool action pool
 
 getHomeR :: Handler Html
@@ -72,5 +80,5 @@ main = runStderrLoggingT $ withSqlitePool "dream_catcher.db"
   openConnectionCount $ \pool -> liftIO $ do
     runResourceT $ flip runSqlPool pool $ do
       runMigration migrateAll
-    warp 3000 $ App pool
-
+    static@(Static settings) <- static "static"
+    warp 3000 $ App static pool
