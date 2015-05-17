@@ -16,6 +16,7 @@ import Data.Time
 import Data.Text (Text)
 import Yesod
 import Yesod.Static
+import Yesod.Default.Handlers
 import Text.Hamlet
 import Control.Monad.Trans.Resource (runResourceT)
 import Control.Monad.Logger (runStderrLoggingT)
@@ -35,8 +36,9 @@ data App = App
     }
 
 mkYesod "App" [parseRoutes|
-/       HomeR   GET
-/static StaticR Static getStatic
+/            HomeR    GET
+/static      StaticR  Static getStatic
+/favicon.ico FaviconR GET
 |]
 
 instance Yesod App where
@@ -61,7 +63,7 @@ getHomeR = do
                   <body>
                     <h3>#{showGregorian (utctDay (dateTime))}
                     $maybe Entity dreamid dream <- maybeDream
-                        <p>#{dreamContent dream}
+                      <p>#{dreamContent dream}
                     $nothing
                       <h1>No dream today...
                 |]
