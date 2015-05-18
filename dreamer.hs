@@ -50,6 +50,7 @@ mkYesod "App" [parseRoutes|
 
 /static      StaticR  Static getStatic
 /favicon.ico FaviconR GET
+/robots.txt  RobotsR  GET
 |]
 
 instance Yesod App where
