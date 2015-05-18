@@ -21,8 +21,6 @@ SavedEmail
 main :: IO ()
 main = runSqlite "dream_diary.db" $ do
     runMigration migrateAll
-    maybeEmail <- selectFirst [SavedEmailAddress !=. ""] []
-    case maybeEmail of
-      Nothing -> liftIO $ putStrLn "Nothing found!"
-      Just oneEmail -> liftIO $ 
-        print . savedEmailAddress . entityVal $ oneEmail
+    emailRows <- selectList [SavedEmailAddress !=. ""] []
+    let emails = map (savedEmailAddress . entityVal) emailRows
+    liftIO $ mapM_ print emails
