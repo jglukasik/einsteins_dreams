@@ -2,7 +2,7 @@
 #
 # Process text in Einstein's Dreams
 #
-# Call ./dream_eater to populate the sqlite database dream_catcher.db
+# Call ./dream_eater to populate the sqlite database dream_diary.db
 
 use warnings;
 use strict;
@@ -65,7 +65,7 @@ while (<$fh>) {
   }
 }
 
-my $db_file = '/home/jglukasik/einsteins_dreams/dream_catcher.db';
+my $db_file = '/home/jglukasik/einsteins_dreams/dream_diary.db';
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file", "", "", { RaiseError => 1})
   or die ("Coudn't connect to db:" . DBI->errstr);
 

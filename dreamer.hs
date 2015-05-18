@@ -57,7 +57,7 @@ instance Yesod App where
       PageContent title headTags bodyTags <- widgetToPageContent $ do 
         addStylesheet $ StaticR css_bootstrap_min_css
         contents
-      withUrlRenderer $(hamletFile "dream_world.hamlet")
+      withUrlRenderer $(hamletFile "dream_catcher.hamlet")
 
 instance RenderMessage App FormMessage where
   renderMessage _ _ = defaultFormMessage
@@ -80,7 +80,7 @@ postEmailR = do
   ((formResult, formWidget), encType) <- runFormPost emailForm
   case formResult of
     FormSuccess email -> do
-        runSqlite "dream_catcher.db" $ do
+        runSqlite "dream_diary.db" $ do
           insert . SavedEmail . unpack . emailAddress $ email
         defaultLayout [whamlet| <p>Success! The email address:
                                 <p><code>#{ emailAddress email }</code>
@@ -125,7 +125,7 @@ openConnectionCount :: Int
 openConnectionCount = 10
 
 main :: IO ()
-main = runStderrLoggingT $ withSqlitePool "dream_catcher.db"
+main = runStderrLoggingT $ withSqlitePool "dream_diary.db"
   openConnectionCount $ \pool -> liftIO $ do
     runResourceT $ flip runSqlPool pool $ do
       runMigration migrateAll
