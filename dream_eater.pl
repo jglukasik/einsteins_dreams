@@ -10,12 +10,7 @@ use strict;
 use Data::Dumper;
 use DateTime;
 use DBI;
-use HTML::Template;
 use Time::Piece;
-
-# Holds onto my phone number
-use lib "/home/jglukasik/einsteins_dreams/credentials";
-use credentials;
 
 # Open the Einstein's Dreams text file
 open(my $fh, "<", "/home/jglukasik/einsteins_dreams/ed.txt") or die "can't open file: $!";
@@ -74,9 +69,12 @@ my $db_file = '/home/jglukasik/einsteins_dreams/dream_catcher.db';
 my $dbh = DBI->connect("dbi:SQLite:dbname=$db_file", "", "", { RaiseError => 1})
   or die ("Coudn't connect to db:" . DBI->errstr);
 
-my $sth = $dbh->prepare('INSERT INTO dream (date,content) VALUES (?, ?)');
+my $create_sth = $dbh->prepare('CREATE TABLE IF NOT EXISTS "dream"("id" INTEGER PRIMARY KEY,"date" TIMESTAMP NOT NULL,"content" VARCHAR NOT NULL);');
+$create_sth->execute();
+
+my $insert_sth = $dbh->prepare_cached('INSERT INTO dream (date,content) VALUES (?, ?)');
 
 foreach my $d (keys %book){
   next if ($d =~ m/INTERLUDE|EPILOGUE|^$/g);
-  $sth->execute($d, $book{$d})
+  $insert_sth->execute($d, $book{$d});
 }
