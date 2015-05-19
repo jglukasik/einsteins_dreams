@@ -1,6 +1,6 @@
 cabal.sandbox.config
 .cabal-sandbox/
-credentials.pm
+Credentials.hs
 *.swp
 *.db
 *.db-*
