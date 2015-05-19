@@ -7,6 +7,7 @@
 {-# LANGUAGE QuasiQuotes                #-}
 {-# LANGUAGE TemplateHaskell            #-}
 {-# LANGUAGE TypeFamilies               #-}
+{-# LANGUAGE ViewPatterns               #-}
 import Database.Persist
 import Database.Persist.TH
 import Database.Persist.Sqlite
@@ -45,8 +46,9 @@ data Email = Email
     deriving Show
 
 mkYesod "App" [parseRoutes|
-/            HomeR    GET
-/email       EmailR   POST
+/    HomeR    GET
+
+/email    EmailR   POST
 
 /static      StaticR  Static getStatic
 /favicon.ico FaviconR GET
@@ -81,14 +83,27 @@ postEmailR = do
   ((formResult, formWidget), encType) <- runFormPost emailForm
   case formResult of
     FormSuccess email -> do
-        runSqlite "dream_diary.db" $ do
-          insert . SavedEmail . unpack . emailAddress $ email
-        defaultLayout [whamlet| <br>
-                                <p>Success! The email address:
-                                <p><code>#{ emailAddress email }</code>
-                                <p>will be emailed on days with a new dream
-                              |]
-    _ -> defaultLayout [whamlet| <p>Invalid input |]
+        maybeDbResult <- runDB $ do
+          selectFirst [SavedEmailAddress ==. unpack (emailAddress email)] []
+        case maybeDbResult of
+          Nothing -> do  
+              runDB $ do insert . SavedEmail . unpack . emailAddress $ email
+              defaultLayout [whamlet| <br>
+                                      <p>Success! The email address:
+                                      <p><code>#{ emailAddress email }</code>
+                                      <p>will be emailed on days with a new dream
+                                    |]
+          Just (Entity savedEmailId savedEmail) -> do 
+              defaultLayout [whamlet| <br>
+                                      <p>Your email address is already in the database.
+                                      <p><code>#{ emailAddress email }</code>
+                                      <br>
+                                      <p>Would you like to remove yourself from the mailing list?
+                                      <p>...I will, as soon as I figure out how...
+                                    |]
+    _ -> defaultLayout [whamlet| <br>
+                                 <p>Invalid input
+                               |]
 
 getHomeR :: Handler Html
 getHomeR = do
