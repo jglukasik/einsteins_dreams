@@ -83,7 +83,8 @@ postEmailR = do
     FormSuccess email -> do
         runSqlite "dream_diary.db" $ do
           insert . SavedEmail . unpack . emailAddress $ email
-        defaultLayout [whamlet| <p>Success! The email address:
+        defaultLayout [whamlet| <br>
+                                <p>Success! The email address:
                                 <p><code>#{ emailAddress email }</code>
                                 <p>will be emailed on days with a new dream
                               |]
@@ -106,7 +107,7 @@ getHomeR = do
                     <div class="jumbotron">
                       <form method=post action=@{EmailR} enctype=#{encType}>
                         ^{formWidget}
-                        <button>Submit
+                        <button class="btn btn-default">Submit
                         <br>
                         <br>
                         Want to be notified on days with a new dream? Then enter
