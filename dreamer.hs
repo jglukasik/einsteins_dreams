@@ -49,6 +49,7 @@ mkYesod "App" [parseRoutes|
 /    HomeR    GET
 
 /email    EmailR   POST
+/email/remove EmailRemoveR   POST
 
 /static      StaticR  Static getStatic
 /favicon.ico FaviconR GET
@@ -78,6 +79,31 @@ emailForm :: Html -> MForm Handler (FormResult Email, Widget)
 emailForm = renderDivs $ Email
     <$> areq emailField "Email address:  " Nothing
 
+postEmailRemoveR :: Handler Html
+postEmailRemoveR = do
+  ((removeFormResult, removeFormWidget), encType) <- runFormPost emailForm
+  case removeFormResult of
+    FormSuccess email -> do
+        maybeDbResult <- runDB $ do
+          selectFirst [SavedEmailAddress ==. unpack (emailAddress email)] []
+        case maybeDbResult of
+          Just entity -> do
+            runDB $ do deleteWhere [SavedEmailAddress ==. unpack (emailAddress email)]
+            defaultLayout [whamlet| <br>
+                                    <p>Success! The email address:
+                                    <p><code>#{ emailAddress email }</code>
+                                    <p>Was removed from the database.
+                                  |]
+          Nothing -> do
+            defaultLayout [whamlet| <br>
+                                    <p>Could not remove from mailing list, email address:
+                                    <p><code>#{ emailAddress email }</code>
+                                    <p>Is not in the database
+                                  |]
+
+    _ -> defaultLayout [whamlet|<p>Error removing email from database|]
+
+
 postEmailR :: Handler Html
 postEmailR = do
   ((formResult, formWidget), encType) <- runFormPost emailForm
@@ -94,12 +120,15 @@ postEmailR = do
                                       <p>will be emailed on days with a new dream
                                     |]
           Just (Entity savedEmailId savedEmail) -> do 
+              (removeFormWidget, removeEncType) <- generateFormPost emailForm
               defaultLayout [whamlet| <br>
                                       <p>Your email address is already in the database.
                                       <p><code>#{ emailAddress email }</code>
                                       <br>
                                       <p>Would you like to remove yourself from the mailing list?
-                                      <p>...I will, as soon as I figure out how...
+                                      <form method=post action=@{EmailRemoveR} enctype=#{removeEncType}>
+                                        ^{removeFormWidget}
+                                        <button class="btn btn-default">Yes, please remove me
                                     |]
     _ -> defaultLayout [whamlet| <br>
                                  <p>Invalid input
