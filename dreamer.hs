@@ -163,8 +163,10 @@ getHomeR = do
 
 dateIn1905 :: IO UTCTime
 dateIn1905 = do 
-  c <- getCurrentTime 
-  let (_,m,d) = toGregorian $ utctDay c
+  utc <- getCurrentTime
+  tz <- getCurrentTimeZone
+  let time = utcToLocalTime tz utc
+  let (_,m,d) = toGregorian $ localDay time
   return $ UTCTime (fromGregorian 1905 m d) 0
 
 openConnectionCount :: Int

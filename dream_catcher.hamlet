@@ -30,3 +30,8 @@
             <a href="http://www.amazon.com/gp/product/140007780X/ref=as_li_tl?ie=UTF8&camp=1789&creative=9325&creativeASIN=140007780X&linkCode=as2&tag=jglukasik-20&linkId=CWOAK7S3RG5ASV7N">this link</a>. #
             You'll support the author for his work, and I'll get a small amount
             from the referral link.
+            <br>
+            <br>
+            Interested in how this was made? Check out the code #
+            <a href="https://github.com/jglukasik/einsteins_dreams">on github.</a>
+            It's made with Haskell!

@@ -37,6 +37,6 @@ sendAlertEmail recepient = sendGmail "jglukasik"
                                      []
                                      []
                                      "New Einstein's Dream"
-                                     "Check out the new dream at http://ed.jgl.me"
+                                     "Check out today's dream at http://ed.jgl.me"
                                      []
                                      10000000
